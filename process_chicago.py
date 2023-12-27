@@ -160,9 +160,9 @@ def process_chicago_census_tract(PU_or_DO):
     taxi_data = taxi_data.dropna(subset=['tmax_obs'])
 
     # add chebyshev_polynomials
-
+    num_days = len(taxi_data["date_pickup"].unique())
     taxi_data["cheby_0"] = 1
-    taxi_data["cheby_1"] = pd.to_datetime(taxi_data['date_pickup']).dt.dayofyear
+    taxi_data["cheby_1"] = taxi_data['date_pickup'].rank(method='dense').astype(int)/num_days
 
     # recursively defining other chebyshev polynomials for each day until 5th order
     for i in range(2, 6):
@@ -188,6 +188,15 @@ def process_chicago_census_tract(PU_or_DO):
                 filtered_weekdays = pd.concat([filtered_weekdays, zcta_filtered])
             counter += 1
 
+     # compute count of outliers per day
+    date_count = out_weekdays.groupby('date_pickup').size().reset_index(name='n')
+
+
+    # get all days that are outliers in at least 35% of the neighborhoods -- ???
+    date_system_outliers = date_count[date_count['n'] >= 43]['date_pickup']
+    out_weekdays_system = taxi_data[~taxi_data['date_pickup'].isin(date_system_outliers)]
+
+    taxi_data = out_weekdays_system
 
     # add temperature bins
     sequence_bins = np.arange(np.floor(taxi_data['tmax_obs'].min()), np.ceil(taxi_data['tmax_obs'].max()) + 1, 3)

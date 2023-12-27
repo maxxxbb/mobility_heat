@@ -2,6 +2,34 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 
+
+def weighted_mean_distance(group):
+    # Filter out rows where 'trip_distance_mean' is NaN
+    valid_rows = group[~group['trip_distance_mean'].isna()]
+    d = valid_rows['trip_distance_mean']
+    w = valid_rows['trip_number']
+    if w.sum() == 0:
+        return np.nan
+    return (d * w).sum() / w.sum()
+
+def weighted_mean_amount(group):
+    # Filter out rows where 'total_amount_mean' is NaN
+    valid_rows = group[~group['total_amount_mean'].isna()]
+    d = valid_rows['total_amount_mean']
+    w = valid_rows['trip_number']
+    if w.sum() == 0:
+        return np.nan
+    return (d * w).sum() / w.sum()
+
+def weighted_mean_tip(group):
+    # Filter out rows where 'tip_amount_mean' is NaN
+    valid_rows = group[~group['tip_amount_mean'].isna()]
+    d = valid_rows['tip_amount_mean']
+    w = valid_rows['trip_number']
+    if w.sum() == 0:
+        return np.nan
+    return (d * w).sum() / w.sum()
+
 def add_2019_hvf_data(fhv_PU, hvfhv_PU):
     """
     Add 2019 High Volume For-Hire Vehicle (HVFHV) data to the For-Hire Vehicle (FHV) data.
@@ -16,6 +44,7 @@ def add_2019_hvf_data(fhv_PU, hvfhv_PU):
     # Correct the year factor of high volume data
     hvfhv_PU["Year_fact"] = 5
     fhv_PU_with_2019 = pd.concat([fhv_PU, hvfhv_PU], ignore_index=True)
+    
     
     # Calculate the number of unique days
     num_days = len(fhv_PU_with_2019["date_pickup"].unique())
@@ -53,8 +82,8 @@ def pool_datasets(yellow_cab_PU, green_cab_PU, fhv_PU_with_2019):
 
     # Group by 'date_pickup' and 'PULocationID' and aggregate the data
     pooled_trips = combined_df.groupby(['date_pickup', 'PULocationID'], as_index=False).agg({
-        'trip_distance_mean': 'mean',  
-        'total_amount_mean': 'mean',   
+        'trip_distance_mean': weighted_mean_distance,  
+        'total_amount_mean': weighted_mean_amount,   
         'trip_number': 'sum',
         # Assuming other columns are the same for each group, take 'first'
         **{col: 'first' for col in combined_df.columns if col not in ['date_pickup', 'PULocationID', 
@@ -97,4 +126,4 @@ pooled_trips = pool_datasets(yellow_cab_PU, green_cab_PU, fhv_PU_with_2019)
 pooled_trips.to_csv('Pooled_data/data_regression_PU.csv', index=False)
 
 # 5. Clear memory
-del yellow_cab_PU, green_cab_PU, fhv_PU, hvfhv_PU, fhv_PU_with_2019, pooled_trips 
+# del yellow_cab_PU, green_cab_PU, fhv_PU, hvfhv_PU, fhv_PU_with_2019, pooled_trips 

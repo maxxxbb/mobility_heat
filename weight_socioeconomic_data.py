@@ -64,8 +64,11 @@ def calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv):
 
     final_df = pd.DataFrame(taxi_zone_data)
 
-    output_path = "taxi_zones_with_socioeconomics.csv"
+    output_path = "taxi_zones_with_socioeconomics_popweighted.csv"
     final_df.to_csv(output_path, index=False)
+
+
+
 
 def _compute_weighted_averages(taxi_zones_gdf, demographics_gdf, socioeconomic_variables):
     """
@@ -79,57 +82,47 @@ def _compute_weighted_averages(taxi_zones_gdf, demographics_gdf, socioeconomic_v
     Returns:
     taxi_zone_data: List of dictionaries containing weighted socioeconomic data for each taxi zone and zone
     """
+    
+    
     taxi_zone_data = []
     # Loop through each taxi zone
     for taxi_zone in taxi_zones_gdf.itertuples():
-        # Get the geometry of the taxi zone
         taxi_zone_geom = taxi_zone.geometry
         taxi_zone_area = taxi_zone_geom.area
-        
-        # Initialize a dictionary to store socio-economic data for this taxi zone
         taxi_zone_socioeconomic_data = {'LocationID': taxi_zone.location_i, 'Zone': taxi_zone.zone}
-        
-        # Initialize a list to store intersecting ZCTA data
         intersecting_zctas = []
-        # Initialize a list to collect ZCTA IDs for the new column
         zcta_ids = []
+        intersection_shares = []
 
         # Loop through each ZCTA
         for zcta in demographics_gdf.itertuples():
-            # Get the geometry of the ZCTA
             zcta_geom = zcta.geometry
-            
-            # Check if the ZCTA intersects with the taxi zone
+
             if taxi_zone_geom.intersects(zcta_geom):
-                # Calculate the intersection area
                 intersection_area = taxi_zone_geom.intersection(zcta_geom).area
-                # Calculate the proportion of the taxi zone that the ZCTA covers
-                proportion = intersection_area / taxi_zone_area
-                # Store the intersecting ZCTA and its proportion
-                intersecting_zctas.append((zcta, proportion))
-                # Collect the ZCTA ID
-                zcta_ids.append(zcta.zcta)  # Replace 'zcta5ce10' with the correct column name for ZCTA ID
+                area_proportion = intersection_area / taxi_zone_area
+                population_weight = zcta.total_pop1
+                weighted_proportion = area_proportion * population_weight
+                intersecting_zctas.append((zcta, weighted_proportion))
+                zcta_ids.append(zcta.zcta)
+                intersection_shares.append((zcta.zcta, area_proportion)) 
 
-        # Calculate weighted averages for socio-economic variables if needed
+        # Calculate real weighted averages
         for var in socioeconomic_variables:
-            if len(intersecting_zctas) == 1:
-                # If the taxi zone is completely within one ZCTA, use that ZCTA's value
-                taxi_zone_socioeconomic_data[f'{var}'] = getattr(intersecting_zctas[0][0], var)
-            else:
-                # Calculate weighted average
+            
+            if len(intersecting_zctas) > 0:
                 weighted_sum = sum(getattr(zcta, var) * proportion for zcta, proportion in intersecting_zctas)
-                taxi_zone_socioeconomic_data[f'{var}'] = weighted_sum
+                total_weight = sum(proportion for _, proportion in intersecting_zctas)
+                taxi_zone_socioeconomic_data[f'{var}'] = weighted_sum / total_weight if total_weight != 0 else 0
 
-        # Add the ZCTA IDs column to the data
         taxi_zone_socioeconomic_data['ZCTA_IDs'] = ', '.join(map(str, zcta_ids))
-        
-        # Append the socio-economic data for this taxi zone to our list
+        taxi_zone_socioeconomic_data['intersection_shares'] = ', '.join(map(str, intersection_shares))
         taxi_zone_data.append(taxi_zone_socioeconomic_data)
 
     return taxi_zone_data
 
 
-demographics_csv = "sent_code/census_data_zcta.csv"
-taxi_zones_csv = "taxi_zones_geometry.csv"
+demographics_csv = "ACS_data/census_data_zcta.csv"
+taxi_zones_csv = "Shapefiles/taxi_zones_geometry.csv"
 
 calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv)

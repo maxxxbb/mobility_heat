@@ -107,7 +107,7 @@ def convert_to_floats_and_sum(string):
 
 def calculate_park_area_in_taxizone(taxizone, parks):
     """
-    Helper Function which returns the sum of park areas in a given taxizone,
+    Helper Function which returns the sum of park areas (and beach areas in a given taxizone,
     by calculating the intersection of each park geometry with the given taxizone geometry.
 
     Function will be applied to each row of the taxizone GeoDataFrame
@@ -180,16 +180,19 @@ def _compute_weighted_averages(taxi_zones_gdf, demographics_gdf, socioeconomic_v
 
 
 
-def add_parks(parks_csv, taxi_zones_geometry , taxi_zones_ACS):
+def add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zones_ACS):
     """
-    Add parks data to the taxi zones dataset.
+    Add parks and beach coverage to the taxi zones dataset.
 
     This function reads parks data and taxi zone geometries from CSV files, 
     converts them into GeoDataFrames, and adds the park coverage to ACS covariates.
 
     Parameters:
     parks_csv (str): File path to the CSV containing parks data.
+    beaches_csv (str): File path to the CSV containing beaches data.
     taxi_zones_csv (str): File path to the CSV containing taxi zone geometries.
+    taxi_zones_ACS (str): File path to the CSV containing taxi zone ACS covariates.
+
 
     Returns:
     pandas.DataFrame: A DataFrame containing the weighted socioeconomic data by taxi zone.
@@ -197,29 +200,36 @@ def add_parks(parks_csv, taxi_zones_geometry , taxi_zones_ACS):
     taxi_zones_ACS = pd.read_csv(taxi_zones_ACS)
     df_taxizones = pd.read_csv(taxi_zones_geometry)
     df_parks = pd.read_csv(parks_csv)
+    df_beaches = pd.read_csv(beaches_csv)
 
     # convert string columns to vector geometries
+    df_beaches['multipolygon'] = df_beaches['multipolygon'].apply(loads)
     df_parks['multipolygon'] = df_parks['multipolygon'].apply(loads)
     df_taxizones['geometry'] = df_taxizones['geometry'].apply(loads)
 
     gdf_parks = gpd.GeoDataFrame(df_parks, geometry='multipolygon')
     gdf_taxizones = gpd.GeoDataFrame(df_taxizones, geometry='geometry')
+    gdf_beaches = gpd.GeoDataFrame(df_beaches, geometry='multipolygon')
 
     # set coordinate reference system for both such that they coincide
     gdf_parks.set_crs(epsg=4326, inplace=True)
     gdf_taxizones.set_crs(epsg=4326, inplace=True)
+    gdf_beaches.set_crs(epsg=4326, inplace=True)
     
     # Apply helper function to each row in taxi zones df
     gdf_taxizones['park_area'] = gdf_taxizones.apply(lambda x: calculate_park_area_in_taxizone(x, gdf_parks), axis=1)
     gdf_taxizones['park_coverage'] = gdf_taxizones['park_area'] / gdf_taxizones['shape_area'] * 100
 
-    park_coverage = pd.DataFrame(gdf_taxizones[['park_coverage', 'location_i']])
+    gdf_taxizones['beach_area'] = gdf_taxizones.apply(lambda x: calculate_park_area_in_taxizone(x, gdf_beaches), axis=1)
+    gdf_taxizones['beach_coverage'] = gdf_taxizones['beach_area'] / gdf_taxizones['shape_area'] * 100
+
+    park_coverage = pd.DataFrame(gdf_taxizones[['park_coverage','beach_coverage' ,'location_i']])
 
     taxizone_ACS_parks = pd.merge(taxi_zones_ACS, park_coverage, left_on = 'LocationID',right_on='location_i', how='left').drop(columns=['location_i'])
 
 
     # Save the dataset
-    output_path = "ACS_data/taxi_zones_ACS_parks.csv"
+    output_path = "ACS_data/taxi_zones_ACS_parks_beaches.csv"
     taxizone_ACS_parks.to_csv(output_path, index=False)
 
 
@@ -231,9 +241,10 @@ parks_csv = "Heat_Vulnerability/Parks_Properties_20231208.csv"
 taxi_zones_ACS = "ACS_data/taxi_zones_ACS.csv"
 taxi_zones_geometry = "Shapefiles/taxi_zones_geometry.csv"
 parks_csv = "Heat_Vulnerability/Parks_Properties_20231208.csv"
+beaches_csv = "Heat_Vulnerability/Beaches_20240105.csv"
 
 
 #### RUN
 
 calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv)
-add_parks(parks_csv, taxi_zones_geometry , taxi_zones_ACS)
+add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zones_ACS)

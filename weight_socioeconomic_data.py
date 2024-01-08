@@ -223,7 +223,7 @@ def add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zon
     gdf_taxizones['beach_area'] = gdf_taxizones.apply(lambda x: calculate_park_area_in_taxizone(x, gdf_beaches), axis=1)
     gdf_taxizones['beach_coverage'] = gdf_taxizones['beach_area'] / gdf_taxizones['shape_area'] * 100
 
-    park_coverage = pd.DataFrame(gdf_taxizones[['park_coverage','beach_coverage' ,'location_i']])
+    park_coverage = pd.DataFrame(gdf_taxizones[['park_coverage','beach_coverage', 'park_area', 'beach_area','location_i']])
 
     taxizone_ACS_parks = pd.merge(taxi_zones_ACS, park_coverage, left_on = 'LocationID',right_on='location_i', how='left').drop(columns=['location_i'])
 

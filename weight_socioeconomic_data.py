@@ -5,6 +5,8 @@ from shapely.wkt import loads
 
 #### FUNCTIONS
 
+
+
 def calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv):
     """
     Process demographic and taxi zone data to create a weighted socioeconomic dataset.
@@ -20,14 +22,17 @@ def calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv):
     Returns:
     pandas.DataFrame: A DataFrame containing the weighted socioeconomic data by taxi zone.
     """
-    # Load the datasets
+
     demographics_df = pd.read_csv(demographics_csv)
+
+    # from demographics dataframe drop all rows where "medincome" is NA
+    demographics_df = demographics_df.dropna(subset=['medincome'])
     # with new demographics: downloaded in R : rename GEOID into zcta
     demographics_df = demographics_df.rename(columns={"GEOID": "zcta"})
 
     taxi_zones_df = pd.read_csv(taxi_zones_csv)
 
-    # Convert the 'geometry' columns from WKT to actual geometric objects
+    # convert the 'geometry' columns  from strings to Shapely geometries
     demographics_gdf = gpd.GeoDataFrame(
         demographics_df, 
         geometry=gpd.GeoSeries.from_wkt(demographics_df['geometry'])
@@ -37,21 +42,23 @@ def calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv):
         geometry=gpd.GeoSeries.from_wkt(taxi_zones_df['geometry'])
     )
 
-    # Set the coordinate reference system to WGS84
+    # Set coordinate reference system - somehow necessary
     demographics_gdf.set_crs(epsg=4326, inplace=True)
     taxi_zones_gdf.set_crs(epsg=4326, inplace=True)
 
-    # List of socioeconomic variables to check for numeric types : , "heatdays" , 'HVI', 'age65_prop', 'heat_jobs
+
+
+    # List of socioeconomic variables to check for numeric types
     socioeconomic_variables = ["medincome", "total_pop1", "fpl_100", "fpl_100to150", "median_rent",
                            "total_hholds1", 'hholds_snap', 'over16total_industry1', 'ag_industry',
                            'construct_industry', 'transpo_and_utilities_industry', 'total_commute1',
-                           'drove_commute', 'pubtrans_bus_commute', 'pubtrans_subway_commute',
+                           'drove_commute', 'pubtrans_bus_commute', 'pubtrans_subway_commute','pubtrans_railroad_commute',
                            'pubtrans_ferry_commute', 'taxi_commute', 'bicycle_commute', 'walked_commute',
                            'workhome_commute', 'unemployed', 'under19_noinsurance', 'age19_34_noinsurance',
                            'age35_64_noinsurance', 'age65plus_noinsurance', 'hisplat_raceethnic',
                            'nonhispLat_white_raceethnic', 'nonhispLat_black_raceethnic',
                            'nonhispLat_amerindian_raceethnic', 'nonhispLat_asian_raceethnic', 'age65_plus',
-                           'fpl_150', 'not_insured']
+                           'fpl_150', 'not_insured', 'no_vehicles' , 'time_to_work', 'median_age']
 
     # Filter for numeric socioeconomic variables only
     socioeconomic_variables = [
@@ -67,19 +74,8 @@ def calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv):
     )
 
     taxi_zones_socioeconomics = pd.DataFrame(taxi_zone_data)
-    
-    # set covariates to N.A.N if the sum of intersection shares is less than 0.2
-    
-    taxi_zones_socioeconomics['sum_of_shares'] = taxi_zones_socioeconomics['intersection_shares'].apply(convert_to_floats_and_sum)
 
 
-    exclude_columns = ['LocationID', 'Zone', 'ZCTA_IDS' , 'sum_of_shares']
-
-
-    columns_to_nan = taxi_zones_socioeconomics.columns.difference(exclude_columns)
-
-    taxi_zones_socioeconomics.loc[taxi_zones_socioeconomics['sum_of_shares'] < 0.2, columns_to_nan] = np.nan
-    
     final_df = taxi_zones_socioeconomics
     
 
@@ -215,6 +211,13 @@ def add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zon
     gdf_parks.set_crs(epsg=4326, inplace=True)
     gdf_taxizones.set_crs(epsg=4326, inplace=True)
     gdf_beaches.set_crs(epsg=4326, inplace=True)
+
+    #remove rows where gdf_parks["Category"] is not in ["Community Park" , "Flagship Park" , "Nature Area" , "Neighborhood Park"] or SUBCATEGORY is  not in ["Large Park"]
+    gdf_parks = gdf_parks[
+    (gdf_parks["SUBCATEGORY"].isin(["Large Park"])) | 
+    (gdf_parks["TYPECATEGORY"].isin(["Community Park", "Flagship Park", "Nature Area", "Neighborhood Park"]))
+    ]
+
     
     # Apply helper function to each row in taxi zones df
     gdf_taxizones['park_area'] = gdf_taxizones.apply(lambda x: calculate_park_area_in_taxizone(x, gdf_parks), axis=1)
@@ -227,16 +230,62 @@ def add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zon
 
     taxizone_ACS_parks = pd.merge(taxi_zones_ACS, park_coverage, left_on = 'LocationID',right_on='location_i', how='left').drop(columns=['location_i'])
 
-
+    # drop duplicate columns
+    taxizone_ACS_parks = taxizone_ACS_parks.drop_duplicates(subset=['LocationID'])
     # Save the dataset
     output_path = "ACS_data/taxi_zones_ACS_parks_beaches.csv"
     taxizone_ACS_parks.to_csv(output_path, index=False)
 
+def add_community_districts(taxi_zones_csv_raw, community_shp):
+    """
+    Add community districts to the taxi zones dataset.
+
+    This function reads community district data and taxi zone geometries from CSV files, 
+    converts them into GeoDataFrames, and adds the community district coverage to ACS covariates.
+
+    Parameters:
+    taxi_zones_csv (str): File path to the CSV containing taxi zone geometries.
+    community_shp (str): File path to the shapefile containing community district data.
+
+    Returns:
+    pandas.DataFrame: A DataFrame containing the weighted socioeconomic data by taxi zone.
+    """
+    gdf_community = gpd.read_file(community_shp)
+    df_taxizones = pd.read_csv(taxi_zones_csv_raw)
+    df_taxizones['geometry'] = df_taxizones['geometry'].apply(loads)
+    taxi_zones = gpd.GeoDataFrame(df_taxizones, geometry='geometry')
+    taxi_zones.set_crs(epsg=4326, inplace=True)
+    taxi_zones['centroid'] = taxi_zones.geometry.centroid
+
+    centroids_gdf = gpd.GeoDataFrame(taxi_zones, geometry='centroid')
+
+    # Ensure both GeoDataFrames use the same CRS
+    centroids_gdf = centroids_gdf.to_crs(gdf_community.crs)
+
+    # Perform the spatial join
+    joined_gdf = gpd.sjoin(centroids_gdf, gdf_community[['geometry', 'boro_cd']], how='left', op='within')
+
+    # Now, 'joined_gdf' contains a column 'boro_cd' that corresponds to the community district each taxi zone's centroid falls within
+    # Use this column to update the 'taxi_zones' DataFrame
+    taxi_zones['community_district'] = joined_gdf['boro_cd']
+    # Manually assign community district 101 to location_id 41
+    taxi_zones.loc[taxi_zones['location_i'] == 41, 'community_district'] = 101
+
+    # Manually assign community district 210 to location_id 46
+    taxi_zones.loc[taxi_zones['location_i'] == 46, 'community_district'] = 210
+    taxi_zones.loc[taxi_zones['location_i'] == 1, 'community_district'] = 0
+
+    # Save the dataset
+    output_path = "Shapefiles/taxi_zones_geometry_community.csv"
+    taxi_zones.to_csv(output_path, index=False)
+
 
 #### PATHS
 
+community_shp = 'Shapefiles/Community_districts/geo_export_a66240e0-e9c2-4c0b-be25-e519bb2e1666.shp'
 demographics_csv = "ACS_data/census_data_zcta.csv"
-taxi_zones_csv = "Shapefiles/taxi_zones_geometry.csv"
+taxi_zones_csv_raw = "Shapefiles/taxi_zones_geometry.csv"
+taxi_zones_csv = "Shapefiles/taxi_zones_geometry_community.csv"
 parks_csv = "Heat_Vulnerability/Parks_Properties_20231208.csv"
 taxi_zones_ACS = "ACS_data/taxi_zones_ACS.csv"
 taxi_zones_geometry = "Shapefiles/taxi_zones_geometry.csv"
@@ -246,5 +295,6 @@ beaches_csv = "Heat_Vulnerability/Beaches_20240105.csv"
 
 #### RUN
 
+add_community_districts(taxi_zones_csv_raw, community_shp)
 calculate_weighted_socioeconomic_data(demographics_csv, taxi_zones_csv)
 add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zones_ACS)

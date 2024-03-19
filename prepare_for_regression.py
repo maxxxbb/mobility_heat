@@ -197,10 +197,9 @@ time_start = time.time()
 
 for level in ['PU','DO']:
     # ['PU','DO' , 'OD']
-    for subset in ['Y','G']:
-        
+    for subset in ['YG','FHV']:
         taxi_data = f"Pooled_data/{level}/data_grouped_{subset}_{level}.csv"
-        climate_data = 'NYC_weather/climate_data_NYC_2014_2019.csv'
+        climate_data = 'Data/NYC_weather/climate_data_NYC_2014_2019.csv'
         prepare_data_for_regression(taxi_data,climate_data, level, subset)
 time_end = time.time()
 

@@ -233,7 +233,7 @@ def add_parks_and_beaches(parks_csv, beaches_csv ,taxi_zones_geometry , taxi_zon
     # drop duplicate columns
     taxizone_ACS_parks = taxizone_ACS_parks.drop_duplicates(subset=['LocationID'])
     # Save the dataset
-    output_path = "ACS_data/taxi_zones_ACS_parks_beaches.csv"
+    output_path = "Data/ACS_data/taxi_zones_ACS_parks_beaches.csv"
     taxizone_ACS_parks.to_csv(output_path, index=False)
 
 def add_community_districts(taxi_zones_csv_raw, community_shp):
@@ -276,21 +276,20 @@ def add_community_districts(taxi_zones_csv_raw, community_shp):
     taxi_zones.loc[taxi_zones['location_i'] == 1, 'community_district'] = 0
 
     # Save the dataset
-    output_path = "Shapefiles/taxi_zones_geometry_community.csv"
+    output_path = "Data/Shapefiles/taxi_zones_geometry_community.csv"
     taxi_zones.to_csv(output_path, index=False)
 
 
 #### PATHS
 
-community_shp = 'Shapefiles/Community_districts/geo_export_a66240e0-e9c2-4c0b-be25-e519bb2e1666.shp'
-demographics_csv = "ACS_data/census_data_zcta.csv"
-taxi_zones_csv_raw = "Shapefiles/taxi_zones_geometry.csv"
-taxi_zones_csv = "Shapefiles/taxi_zones_geometry_community.csv"
-parks_csv = "Heat_Vulnerability/Parks_Properties_20231208.csv"
-taxi_zones_ACS = "ACS_data/taxi_zones_ACS.csv"
-taxi_zones_geometry = "Shapefiles/taxi_zones_geometry.csv"
-parks_csv = "Heat_Vulnerability/Parks_Properties_20231208.csv"
-beaches_csv = "Heat_Vulnerability/Beaches_20240105.csv"
+community_shp = 'Data/Shapefiles/Community_districts/geo_export_a66240e0-e9c2-4c0b-be25-e519bb2e1666.shp'
+demographics_csv = "Data/ACS_data/census_data_zcta.csv"
+taxi_zones_csv_raw = "Data/Shapefiles/taxi_zones_geometry.csv"
+taxi_zones_csv = "Data/Shapefiles/taxi_zones_geometry_community.csv"
+parks_csv = "Data/ACS_data/Parks_Properties_20231208.csv"
+taxi_zones_ACS = "Data/ACS_data/taxi_zones_ACS.csv"
+taxi_zones_geometry = "Data/Shapefiles/taxi_zones_geometry.csv"
+beaches_csv = "Data/ACS_data/Beaches_20240105.csv"
 
 
 #### RUN

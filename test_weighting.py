@@ -51,9 +51,6 @@ def _compute_weighted_averages(taxi_zones_gdf, demographics_gdf, socioeconomic_v
 
 
 
-
-
-
 class TestSocioeconomicCalculations(unittest.TestCase):
 
     def test_weighted_averages(self):

@@ -192,11 +192,11 @@ def get_daily_data(paths, levels):
             print(f"Execution time {path} {level} merging: {end_time - start_time:.2f} seconds")
 
 
-#paths = ["Green_Cab_data", "Yellow_Cab_data", "High_Volume_FHV" , "For_Hire_Vehicle_data"]
-paths = ["For_Hire_Vehicle_data"]
+paths = ["Green_Cab_data", "Yellow_Cab_data", "High_Volume_FHV" , "For_Hire_Vehicle_data"]
 
 
 levels = ["PU", "DO"]
 
-
-get_daily_data(paths = paths , levels = levels)
+for path in paths:
+    for level in levels:
+        get_daily_data(paths = path , levels = level)

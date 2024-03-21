@@ -40,8 +40,8 @@ Weather data was sourced from the [NOAA](https://www.ncei.noaa.gov/cdo-web/searc
 
 3. **Neighborhood Characteristics**
 
-   3.1 ACS (2015-2019) U.S. Census Bureau 5-year estimates : is downloaded in the script `process_census_data_taxi_5_year_estimates`.
-   3.2 Park and Beach Areas: Data on [Park](https://nycopendata.socrata.com/Recreation/Parks-Properties/enfh-gkve/about_data) and [Beach](https://data.cityofnewyork.us/dataset/Beaches/ijwa-mn2v/about_data) Areas in NYC are sourced from the Department of Parks and Recreation (DPR)
+   - 3.1 ACS (2015-2019) U.S. Census Bureau 5-year estimates : is downloaded in the script `process_census_data_taxi_5_year_estimates`.
+   - 3.2 Park and Beach Areas: Data on [Park](https://nycopendata.socrata.com/Recreation/Parks-Properties/enfh-gkve/about_data) and [Beach](https://data.cityofnewyork.us/dataset/Beaches/ijwa-mn2v/about_data) Areas in NYC are sourced from the Department of Parks and Recreation (DPR)
 
 Final resulting dataset containing all neighborhood characteristics used in the analysis and matched to the taxi-zone level  are in `Data\ACS_data\taxi_zones_ACS_parks_beaches_deviation.csv`
 

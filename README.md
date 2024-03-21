@@ -5,7 +5,7 @@
 
 ### About
 
-This repository contains code to replicate the main estimates of my masteers thesis
+This repository contains code to replicate the main estimates of .... .
 
 
 ### Requires

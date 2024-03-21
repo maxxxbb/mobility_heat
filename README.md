@@ -53,10 +53,21 @@ Contains shapefiles of Taxi zones and ZCTAs from the TLC website and the NYC Ope
 
 #### Data Preprocessing:
 
+- **Trip_record_preprocessing.pdf**: Pdf describing the steps to process the trip records more detailed.
 - **preprocess_data.py**: Script to aggregate raw trip records (.parquet) on the day-by-zone level
 - **pool_taxi_data.py**: Script to pool Yellow and Green and FHV and HVFHV datasets
 - **prepare_for_regression**: Merges aggregated trip records with weather data and prepares those for usage in the main analysis.
-- **Plot_time_series**: Notebook containing plot of ridership distribution over time.
+- **weight_socioeconomic_data.py**: Script to match ACS_data to the taxi zone level and adding park and beach areas.
+- **test_weighting.py**: Contains unit test for weighting function.
+- **add_satellite_tenmperature.py**: Maps Landsat-8 raster data to the taxi zones and creates averages to get neighborhood-level heat proxy.
+- **process_census_data_taxi_5_year_estimates.R**: Script to download Census data
+- **chicago_ridesharing_functions.py**: Contains all datapreprocessing steps for Chicago subset.
+
+#### Analysis:
+- **binned_regression.py**: Contains all relevant functions to estimate binned panel model and plots.
+- **main_reg_notebook.ipynb**: Main Model with different specifications are estimated here. Draws on functions from `binned_regression.py` and Data folder.
+- **mobility_response_by_neighborhood.py**: Contains all functions used to estimate the neighborhood-level response.
+
 
 
 
@@ -67,10 +78,6 @@ Contains shapefiles of Taxi zones and ZCTAs from the TLC website and the NYC Ope
 - **Plot_time_series**: Notebook containing plot of ridership distribution over time.
 
 
-
-
-
-- **figures** :  plots
 - **paper** : final pdf
 - **tables** : tables of estimates and summary statistics
 

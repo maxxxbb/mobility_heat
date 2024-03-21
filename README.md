@@ -26,8 +26,8 @@ The project was created on Windows 10 using
 Trip record data is not contained in this repository due to its size. The aggregated datasets will be made available upon request:
 
 1. **Trip Records**:
-   1.1 NYC Trip Records are provided by the NYC Taxi and Limousine Comission [(TLC)](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
-   1.2 Chicago Trip Records are provided by the [City of Chicago](https://data.cityofchicago.org/Transportation/Transportation-Network-Providers-Trips-2018-2022-)
+   - 1.1 NYC Trip Records are provided by the NYC Taxi and Limousine Comission [(TLC)](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
+   - 1.2 Chicago Trip Records are provided by the [City of Chicago](https://data.cityofchicago.org/Transportation/Transportation-Network-Providers-Trips-2018-2022-)
 
 NYC monthly trip records (.parquet) from 2015-2019 were downloaded from the TLC homepage and then processed with the scripts `prepocess_data.py`,  `pool_taxi_data.py` and `prepare_for_regression`. The preprocessed trip records for the respective subsets (medallion taxis or ridesharing companies) are saved into `Pooled_data\level\final\final_data_subset_level` which are then used for the subsequent analysis.
 

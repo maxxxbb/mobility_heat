@@ -1,15 +1,15 @@
-# Mobility and Heat:
+# Inequality in Mobility Adaptation to Heat - Ridesharing:
 ### Author
 
 - Max Boehringer (University of Bonn, s6mxboeh@uni-bonn.de)
 
 ### About
 
-This repository contains code to replicate the main estimates of .... .
+This repository contains code to replicate the main estimates of ...  .
 
 
 ### Requires
-In order to run this project on your local machine you need to have installed Python, an Anaconda distribution and LaTex distribution in order to compile .tex documents.
+In order to run this project on your local machine you need to have installed Python, R and an Anaconda distribution.
 
 The project was created on Windows 10 using
 
@@ -19,19 +19,19 @@ The project was created on Windows 10 using
 
 1. All necessary python dependencies are contained in environment.yml . To install the virtual environment in a terminal move to the root folder of the repository and type `$ conda env create -f environment.yml` and to activate type  `$ conda activate dl_intro`.
 
-2. Trip record data is too large to upload and can be made available upon request. Aggregated weather data (source: NOAA) and census data (source: ACS 2019) are in the Data Folder.
 
 ### Data 
 
-Trip record data is not contained in this repository due to its size. The aggregated datasets will be made available upon request:
+Full Trip record data is not contained in this repository due to its size. The aggregated datasets can be replicated with publicly available data and the scripts contained in this repository:
 
 1. **Trip Records**:
    - 1.1 NYC Trip Records are provided by the NYC Taxi and Limousine Comission [(TLC)](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
    - 1.2 Chicago Trip Records are provided by the [City of Chicago](https://data.cityofchicago.org/Transportation/Transportation-Network-Providers-Trips-2018-2022-)
 
-NYC monthly trip records (.parquet) from 2015-2019 were downloaded from the TLC homepage and then processed with the scripts `prepocess_data.py`,  `pool_taxi_data.py` and `prepare_for_regression`. The preprocessed trip records for the respective subsets (medallion taxis or ridesharing companies) are saved into `Pooled_data\level\final\final_data_subset_level` which are then used for the subsequent analysis.
+NYC monthly trip records (.parquet) from 2015-2019 were downloaded from the TLC homepage and then processed with the scripts `prepocess_data.py`,  `pool_taxi_data.py` and `prepare_for_regression`. The preprocessed trip records for the respective subsets (medallion taxis or ridesharing companies) are saved into `Pooled_data\level\final\final_data_subset_level` which are then used for the subsequent analysis. In this repository parquet files containing the trip_records aggregated by day and taxi zone at the pickup level are found in `Pooled_data\level\final\final_data_subset_level` for For Hire Vehicles (Ridesharing) and Medallion taxis respectively. 
+ 
 
-Chicago ridesharing trip records were preaggregated on the Chicago Open Data Portal as defined [here](https://data.cityofchicago.org/Transportation/Transportation-Network-Providers-Trips-2018-2022-/m6dm-c72p/explore/query/SELECT%0A%20%20%60trip_start_timestamp%60%2C%0A%20%20%60pickup_community_area%60%2C%0A%20%20count%28%60trip_id%60%29%20AS%20%60count_trips%60%2C%0A%20%20avg%28%60fare%60%29%20AS%20%60avg_fare%60%2C%0A%20%20avg%28%60trip_miles%60%29%20AS%20%60avg_trip_distance%60%2C%0A%20%20avg%28%60tip%60%29%20AS%20%60avg_tip%60%0AGROUP%20BY%20%60trip_start_timestamp%60%2C%20%60pickup_community_area%60%0AORDER%20BY%20%60pickup_community_area%60%20ASC%20NULL%20LAST/page/aggregate). The aggregation was done for the 2018-2022 and 2023 ridesharing trip records.
+Chicago ridesharing trip records were preaggregated on the Chicago Open Data Portal as defined [here](https://data.cityofchicago.org/Transportation/Transportation-Network-Providers-Trips-2018-2022-/m6dm-c72p/explore/query/SELECT%0A%20%20%60trip_start_timestamp%60%2C%0A%20%20%60pickup_community_area%60%2C%0A%20%20count%28%60trip_id%60%29%20AS%20%60count_trips%60%2C%0A%20%20avg%28%60fare%60%29%20AS%20%60avg_fare%60%2C%0A%20%20avg%28%60trip_miles%60%29%20AS%20%60avg_trip_distance%60%2C%0A%20%20avg%28%60tip%60%29%20AS%20%60avg_tip%60%0AGROUP%20BY%20%60trip_start_timestamp%60%2C%20%60pickup_community_area%60%0AORDER%20BY%20%60pickup_community_area%60%20ASC%20NULL%20LAST/page/aggregate). The aggregation was done for the 2018-2022 and 2023 ridesharing trip record sets.  A parquet file of the preprocessed trip records for Chicago ( Output of `chicago_ridesharing_functions.prepare_chicago()` ) is found in `Data\Chicago_data` .
 
 2. **Weather Data**:
 
@@ -62,6 +62,8 @@ Contains shapefiles of Taxi zones and ZCTAs from the TLC website and the NYC Ope
 - **add_satellite_tenmperature.py**: Maps Landsat-8 raster data to the taxi zones and creates averages to get neighborhood-level heat proxy.
 - **process_census_data_taxi_5_year_estimates.R**: Script to download Census data
 - **chicago_ridesharing_functions.py**: Contains all datapreprocessing steps for Chicago subset.
+- **trip_records_parquet_to_csv.py** : Converts aggregated trip records at the pickup level (.parquet) for NYC and Chicago to .csv
+
 
 #### Analysis:
 - **binned_regression.py**: Contains all relevant functions to estimate binned panel model and plots.
@@ -78,8 +80,3 @@ Contains shapefiles of Taxi zones and ZCTAs from the TLC website and the NYC Ope
 - **Plot_time_series**: Notebook containing plot of ridership distribution over time.
 
 
-- **paper** : final pdf
-- **tables** : tables of estimates and summary statistics
-
-
-### Sources:

@@ -5,7 +5,7 @@
 
 ### About
 
-This repository contains code to replicate the main estimates of ...  .
+This repository contains code to replicate the estimates of the Masters thesis: "Urban Heat Exposure and Inequality in Mobility Adaptation".
 
 
 ### Requires

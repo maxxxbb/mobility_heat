@@ -7,6 +7,13 @@
 
 This repository contains code to replicate the estimates of the Masters thesis: "Urban Heat Exposure and Inequality in Mobility Adaptation".
 
+### Abstract
+
+The study investigates the impact of temperature on daily ridesharing usage in New York
+City. Using a dataset of 1.3 billion individual trip records covering the period from 2015 to 2019. Using a semi-parametric fixed effects model and exploiting random variation in daily temperature, I find a non-linear relationship between temperature and ridesharing demand. Ridesharing usage decreases as temperatures rise from moderate to warm levels but increases significantly on extremely hot days (above 30°C). This contrasts with existing research on other modes of transport, where extreme heat is typically associated with reduced outside mobility. Moreover, I find that the temperature effect varies across neighborhoods: areas with higher median income and lower unemployment rates exhibit a stronger increase in ridesharing usage on the hottest days. The results indicate that ridesharing services serve as an adaptive strategy for heat exposure, but with unequal accessibility, reinforcing existing inequalities in climate adaptation capabilities.
+
+
+
 
 ### Requires
 In order to run this project on your local machine you need to have installed Python, R and an Anaconda distribution.
